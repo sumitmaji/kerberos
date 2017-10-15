@@ -7,7 +7,7 @@
 : ${KERB_MASTER_KEY:=masterkey}
 : ${KERB_ADMIN_USER:=root}
 : ${KERB_ADMIN_PASS:=admin}
-: ${SEARCH_DOMAINS:=search.consul node.dc1.consul}
+: ${LDAP_HOST:=ldap://ldap.cloud.com}
 
 fix_nameserver() {
   cat>/etc/resolv.conf<<EOF
@@ -36,17 +36,41 @@ create_config() {
  ticket_lifetime = 24h
  renew_lifetime = 7d
  forwardable = true
+ proxiable = true
 
 [realms]
  $REALM = {
   kdc = $KDC_ADDRESS
   admin_server = $KDC_ADDRESS
+  database_module = openldap_ldapconf
  }
 
 [domain_realm]
  .$DOMAIN_REALM = $REALM
  $DOMAIN_REALM = $REALM
+
+[dbdefaults]
+        ldap_kerberos_container_dn = cn=krbContainer,dc=cloud,dc=com
+
+[dbmodules]
+        openldap_ldapconf = {
+                db_library = kldap
+                ldap_kdc_dn = cn=kdc-srv,ou=krb5,dc=cloud,dc=com
+                ldap_kadmind_dn = cn=adm-srv,ou=krb5,dc=cloud,dc=com
+                ldap_service_password_file = /etc/krb5kdc/service.keyfile
+                ldap_conns_per_server = 5
+                ldap_servers = $LDAP_HOST 
+        }
 EOF
+}
+
+create_containers() {
+  kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit \
+-H $LDAP_HOST create -r $REALM -s
+  kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
+-f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,dc=cloud,dc=com
+  kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
+-f /etc/krb5kdc/service.keyfile cn=adm-srv,ou=krb5,dc=cloud,dc=com 
 }
 
 create_db() {
@@ -54,7 +78,8 @@ create_db() {
   touch /var/log/kerberos/{krb5kdc,kadmin,krb5lib}.log
   chmod -R 750  /var/log/kerberos
 
-  /usr/sbin/kdb5_util -P $KERB_MASTER_KEY -r $REALM create -s
+  #database will be created in ldap
+  #/usr/sbin/kdb5_util -P $KERB_MASTER_KEY -r $REALM create -s
 }
 
 start_kdc() {
@@ -80,7 +105,8 @@ main() {
   if [ ! -f /kerberos_initialized ]; then
     create_config
     create_db
-    create_admin_user
+    create_containers
+    #create_admin_user
     start_kdc
 
     touch /kerberos_initialized
