@@ -62,11 +62,33 @@ create_config() {
                 ldap_servers = $LDAP_HOST 
         }
 EOF
+cat>/etc/krb5kdc/kdc.conf<<EOF
+[kdcdefaults]
+    kdc_ports = 750,88
+
+[realms]
+    CLOUD.COM = {
+        database_name = /var/lib/krb5kdc/principal
+        admin_keytab = FILE:/etc/krb5kdc/kadm5.keytab
+        acl_file = /etc/krb5kdc/kadm5.acl
+        key_stash_file = /etc/krb5kdc/stash
+        kdc_ports = 750,88
+        max_life = 10h 0m 0s
+        max_renewable_life = 7d 0h 0m 0s
+        master_key_type = des3-hmac-sha1
+        supported_enctypes = aes256-cts:normal arcfour-hmac:normal des3-hmac-sha1:normal des-cbc-crc:normal des:normal des:v4 des:norealm des:onlyrealm des:afs3
+        default_principal_flags = +preauth
+    }
+EOF
+cat>/etc/krb5kdc/kadm5.acl<<EOF
+*/admin *
+EOF
+
 }
 
 create_containers() {
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit \
--H $LDAP_HOST create -r $REALM -s
+-H $LDAP_HOST create -subtrees cn=krbContainer,dc=cloud,dc=com -r $REALM -s
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
 -f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,dc=cloud,dc=com
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
