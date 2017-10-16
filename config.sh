@@ -88,11 +88,11 @@ EOF
 
 create_containers() {
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit \
--H $LDAP_HOST create -subtrees cn=krbContainer,dc=cloud,dc=com -r $REALM -s
+-H $LDAP_HOST create -subtrees cn=krbContainer,dc=cloud,dc=com -r $REALM -s -P sumit
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
 -f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,dc=cloud,dc=com
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
--f /etc/krb5kdc/service.keyfile cn=adm-srv,ou=krb5,dc=cloud,dc=com 
+-f /etc/krb5kdc/service.keyfile cn=adm-srv,ou=krb5,dc=cloud,dc=com
 }
 
 create_db() {
