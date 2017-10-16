@@ -88,7 +88,7 @@ EOF
 
 create_containers() {
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit \
--H $LDAP_HOST create -subtrees cn=krbContainer,dc=cloud,dc=com -r $REALM -s -P sumit
+-H $LDAP_HOST create -subtrees cn=krbContainer,dc=cloud,dc=com -r $REALM -s -P $KERB_ADMIN_PASS
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
 -f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,dc=cloud,dc=com
   kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
@@ -128,7 +128,7 @@ main() {
     create_config
     create_db
     create_containers
-    #create_admin_user
+    create_admin_user
     start_kdc
 
     touch /kerberos_initialized
