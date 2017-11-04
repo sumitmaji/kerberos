@@ -8,6 +8,7 @@
 : ${KERB_ADMIN_USER:=root}
 : ${KERB_ADMIN_PASS:=admin}
 : ${LDAP_HOST:=ldap://ldap.cloud.com}
+: ${BASE_DN:=dc=cloud,dc=com}
 
 fix_nameserver() {
   cat>/etc/resolv.conf<<EOF
@@ -50,13 +51,13 @@ create_config() {
  $DOMAIN_REALM = $REALM
 
 [dbdefaults]
-        ldap_kerberos_container_dn = cn=krbContainer,dc=cloud,dc=com
+        ldap_kerberos_container_dn = cn=krbContainer,$BASE_DN
 
 [dbmodules]
         openldap_ldapconf = {
                 db_library = kldap
-                ldap_kdc_dn = cn=kdc-srv,ou=krb5,dc=cloud,dc=com
-                ldap_kadmind_dn = cn=adm-srv,ou=krb5,dc=cloud,dc=com
+                ldap_kdc_dn = cn=kdc-srv,ou=krb5,$BASE_DN
+                ldap_kadmind_dn = cn=adm-srv,ou=krb5,$BASE_DN
                 ldap_service_password_file = /etc/krb5kdc/service.keyfile
                 ldap_conns_per_server = 5
                 ldap_servers = $LDAP_HOST 
@@ -67,7 +68,7 @@ cat>/etc/krb5kdc/kdc.conf<<EOF
     kdc_ports = 750,88
 
 [realms]
-    CLOUD.COM = {
+    $REALM = {
         database_name = /var/lib/krb5kdc/principal
         admin_keytab = FILE:/etc/krb5kdc/kadm5.keytab
         acl_file = /etc/krb5kdc/kadm5.acl
@@ -87,12 +88,12 @@ EOF
 }
 
 create_containers() {
-  kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit \
--H $LDAP_HOST create -subtrees cn=krbContainer,dc=cloud,dc=com -r $REALM -s -P $KERB_ADMIN_PASS
-  kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
--f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,dc=cloud,dc=com
-  kdb5_ldap_util -D cn=admin,dc=cloud,dc=com -w sumit stashsrvpw \
--f /etc/krb5kdc/service.keyfile cn=adm-srv,ou=krb5,dc=cloud,dc=com
+  kdb5_ldap_util -D cn=admin,$BASE_DN -w sumit \
+-H $LDAP_HOST create -subtrees cn=krbContainer,$BASE_DN -r $REALM -s -P $KERB_ADMIN_PASS
+  kdb5_ldap_util -D cn=admin,$BASE_DN -w sumit stashsrvpw \
+-f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,$BASE_DN
+  kdb5_ldap_util -D cn=admin,$BASE_DN -w sumit stashsrvpw \
+-f /etc/krb5kdc/service.keyfile cn=adm-srv,ou=krb5,$BASE_DN
 }
 
 create_db() {
