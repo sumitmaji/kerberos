@@ -2,13 +2,18 @@
 
 [[ "TRACE" ]] && set -x
 
-: ${REALM:=CLOUD.COM}
-: ${DOMAIN_REALM:=cloud.com}
+source /config
+
+: ${REALM:=$(echo $DOMAIN_NAME | tr 'a-z' 'A-Z')}
+: ${DOMAIN_REALM:=$DOMAIN_NAME}
 : ${KERB_MASTER_KEY:=masterkey}
 : ${KERB_ADMIN_USER:=root}
-: ${KERB_ADMIN_PASS:=admin}
-: ${LDAP_HOST:=ldap://ldap.cloud.com}
-: ${BASE_DN:=dc=cloud,dc=com}
+: ${KERB_ADMIN_PASS:=$KERB_ADMIN_PASS}
+: ${LDAP_HOST:=$LDAP_HOST}
+: ${BASE_DN:=$DC}
+: ${LDAP_PASSWORD:=$LDAP_PASSWORD}
+: ${KDC_PASSWORD:=$KDC_PASSWORD}
+: ${ADM_PASSWORD:=$ADM_PASSWORD}
 
 fix_nameserver() {
   cat>/etc/resolv.conf<<EOF
@@ -88,12 +93,19 @@ EOF
 }
 
 create_containers() {
-  kdb5_ldap_util -D cn=admin,$BASE_DN -w sumit \
+  kdb5_ldap_util -D cn=admin,$BASE_DN -w $LDAP_PASSWORD \
 -H $LDAP_HOST create -subtrees cn=krbContainer,$BASE_DN -r $REALM -s -P $KERB_ADMIN_PASS
-  kdb5_ldap_util -D cn=admin,$BASE_DN -w sumit stashsrvpw \
--f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,$BASE_DN
-  kdb5_ldap_util -D cn=admin,$BASE_DN -w sumit stashsrvpw \
--f /etc/krb5kdc/service.keyfile cn=adm-srv,ou=krb5,$BASE_DN
+   kdb5_ldap_util -D cn=admin,$BASE_DN -w $LDAP_PASSWORD stashsrvpw \
+-f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,$BASE_DN << EOF
+$KDC_PASSWORD
+$KDC_PASSWORD
+EOF
+   kdb5_ldap_util -D cn=admin,$BASE_DN -w $LDAP_PASSWORD stashsrvpw \
+-f /etc/krb5kdc/service.keyfile cn=adm-srv,ou=krb5,$BASE_DN << EOF
+$ADM_PASSWORD
+$ADM_PASSWORD
+EOF
+
 }
 
 create_db() {

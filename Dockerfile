@@ -8,5 +8,6 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d
 EXPOSE 88 749
 
 ADD ./config.sh /config.sh
+ADD ./config /config
 
 ENTRYPOINT ["/config.sh"]
