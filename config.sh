@@ -94,7 +94,16 @@ EOF
 
 create_containers() {
   kdb5_ldap_util -D cn=admin,$BASE_DN -w $LDAP_PASSWORD \
--H $LDAP_HOST create -subtrees cn=krbContainer,$BASE_DN -r $REALM -s -P $KERB_ADMIN_PASS
+-H $LDAP_HOST create -subtrees cn=krbContainer,$BASE_DN -r $REALM -s -P $KERB_ADMIN_PASS 2>error
+  output=`grep "Can't contact LDAP server while initializing database" error`
+  while [ ! -z "$output" ]
+  do
+   sleep 10
+   kdb5_ldap_util -D cn=admin,$BASE_DN -w $LDAP_PASSWORD \
+-H $LDAP_HOST create -subtrees cn=krbContainer,$BASE_DN -r $REALM -s -P $KERB_ADMIN_PASS 2>error
+   output=`grep "Can't contact LDAP server while initializing database" error`
+  done
+ 
    kdb5_ldap_util -D cn=admin,$BASE_DN -w $LDAP_PASSWORD stashsrvpw \
 -f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,$BASE_DN << EOF
 $KDC_PASSWORD
