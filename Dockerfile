@@ -1,4 +1,4 @@
-FROM sumit/base:latest
+FROM master.cloud.com:5000/base
 MAINTAINER Sumit Kumar Maji
 
 ARG DEBIAN_FRONTEND=noninteractive
