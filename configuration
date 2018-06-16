@@ -1,0 +1,8 @@
+IMAGE_NAME=sumit/kerberos
+REGISTRY=master.cloud.com:5000
+REPO_NAME=kerberos
+CONTAINER_NAME=kerberos
+BUILD_PATH=/tmp
+RELEASE_NAME=kerberos
+PATH_TO_CHART=chart
+DEPLOY=true
