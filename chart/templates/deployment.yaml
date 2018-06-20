@@ -65,6 +65,12 @@ spec:
               secretKeyRef:
                 name: krbsecret
                 key: admpassword
+          livenessProbe:
+            exec:
+              command:
+              - curl
+              - -k
+              - ldaps://ldap:636/
           volumeMounts:
           - name: ldapsecret
             mountPath: /etc/secret/ldap/
