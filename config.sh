@@ -8,12 +8,12 @@ source /config
 : ${DOMAIN_REALM:=$DOMAIN_NAME}
 : ${KERB_MASTER_KEY:=masterkey}
 : ${KERB_ADMIN_USER:=root}
-: ${KERB_ADMIN_PASS:=$KERB_ADMIN_PASS}
+: ${KERB_ADMIN_PASS:=$(</etc/secret/krb/password)}
 : ${LDAP_HOST:=$LDAP_HOST}
 : ${BASE_DN:=$DC}
-: ${LDAP_PASSWORD:=$LDAP_PASSWORD}
-: ${KDC_PASSWORD:=$KDC_PASSWORD}
-: ${ADM_PASSWORD:=$ADM_PASSWORD}
+: ${LDAP_PASSWORD:=$(</etc/secret/ldap/password)}
+: ${KDC_PASSWORD:=$(</etc/secret/krb/kdcpassword)}
+: ${ADM_PASSWORD:=$(</etc/secret/krb/admpassword)}
 
 fix_nameserver() {
   cat>/etc/resolv.conf<<EOF
@@ -65,7 +65,7 @@ create_config() {
                 ldap_kadmind_dn = cn=adm-srv,ou=krb5,$BASE_DN
                 ldap_service_password_file = /etc/krb5kdc/service.keyfile
                 ldap_conns_per_server = 5
-                ldap_servers = $LDAP_HOST 
+                ldap_servers = $LDAP_HOST
         }
 EOF
 cat>/etc/krb5kdc/kdc.conf<<EOF
@@ -103,7 +103,7 @@ create_containers() {
 -H $LDAP_HOST create -subtrees cn=krbContainer,$BASE_DN -r $REALM -s -P $KERB_ADMIN_PASS 2>error
    output=`grep "Can't contact LDAP server while initializing database" error`
   done
- 
+
    kdb5_ldap_util -D cn=admin,$BASE_DN -w $LDAP_PASSWORD stashsrvpw \
 -f /etc/krb5kdc/service.keyfile cn=kdc-srv,ou=krb5,$BASE_DN << EOF
 $KDC_PASSWORD
@@ -127,7 +127,7 @@ create_db() {
 }
 
 start_kdc() {
-  invoke-rc.d krb5-admin-server start  
+  invoke-rc.d krb5-admin-server start
   invoke-rc.d krb5-kdc start
 }
 

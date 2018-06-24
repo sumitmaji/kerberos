@@ -44,27 +44,27 @@ spec:
             containerPort: 2122
           - name: ssl-ldap
             containerPort: 636
-          env:
-          - name: LDAP_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: ldapsecret
-                key: password
-          - name: KERB_ADMIN_PASS
-            valueFrom:
-              secretKeyRef:
-                name: krbsecret
-                key: password
-          - name: KDC_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: krbsecret
-                key: kdcpassword
-          - name: ADM_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: krbsecret
-                key: admpassword
+          # env:
+          # - name: LDAP_PASSWORD
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: ldapsecret
+          #       key: password
+          # - name: KERB_ADMIN_PASS
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: krbsecret
+          #       key: password
+          # - name: KDC_PASSWORD
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: krbsecret
+          #       key: kdcpassword
+          # - name: ADM_PASSWORD
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: krbsecret
+          #       key: admpassword
           livenessProbe:
             exec:
               command:
