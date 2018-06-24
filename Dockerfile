@@ -1,4 +1,4 @@
-FROM master.cloud.com:5000/base
+FROM master.cloud.com:5000/base-trusty
 MAINTAINER Sumit Kumar Maji
 
 ARG DEBIAN_FRONTEND=noninteractive
